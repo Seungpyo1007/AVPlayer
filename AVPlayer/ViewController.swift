@@ -2,25 +2,25 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    // MARK: - UI Components
+    // MARK: - UI 컴포넌트
     
     private let searchController = UISearchController(searchResultsController: nil)
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.minimumLineSpacing = 10
-        layout.minimumInteritemSpacing = 10
+        layout.minimumLineSpacing = 16
+        layout.minimumInteritemSpacing = 16
         
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
-        cv.backgroundColor = .white
+        cv.backgroundColor = .systemBackground
         cv.dataSource = self
         cv.delegate = self
         cv.register(MovieCell.self, forCellWithReuseIdentifier: "MovieCell")
         return cv
     }()
     
-    // MARK: - Data Properties
+    // MARK: - 데이터 프로퍼티
     
     private var movies: [Movie] = []
     private var currentPage = 1
@@ -29,22 +29,43 @@ class ViewController: UIViewController {
     
     private let networkManager = NetworkManager()
 
-    // MARK: - Lifecycle
+    // MARK: - 생명주기
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         loadPopularMovies()
+        
+        // 뒤로가기 버튼 텍스트 설정
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "인기 영화", style: .plain, target: nil, action: nil)
     }
     
-    // MARK: - UI Setup
+    // MARK: - UI 설정
     
     private func setupUI() {
-        view.backgroundColor = .white
-        title = "인기 영화 랭킹"
+        view.backgroundColor = .systemBackground
+        title = "인기 영화"
         
+        // 네비게이션 바 스타일 설정
+        setupNavigationBar()
         setupCollectionView()
         setupSearchBar()
+    }
+    
+    // 다크모드 대응 네비게이션 바 설정
+    private func setupNavigationBar() {
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        if #available(iOS 13.0, *) {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = .systemBackground
+            appearance.titleTextAttributes = [.foregroundColor: UIColor.label]
+            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+            
+            navigationController?.navigationBar.standardAppearance = appearance
+            navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        }
     }
     
     private func setupCollectionView() {
@@ -69,7 +90,7 @@ class ViewController: UIViewController {
         definesPresentationContext = true
     }
     
-    // MARK: - Data Loading
+    // MARK: - 데이터 로딩
     
     /// 초기 인기 영화 로드
     private func loadPopularMovies() {
@@ -111,7 +132,13 @@ class ViewController: UIViewController {
                 self.currentSearchQuery = query
                 
                 // 화면 제목 업데이트
-                self.title = query == nil ? "인기 영화 랭킹" : "검색 결과"
+                if query == nil {
+                    self.title = "인기 영화 랭킹"
+                    self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "인기 영화", style: .plain, target: nil, action: nil)
+                } else {
+                    self.title = "검색 결과"
+                    self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "검색 결과", style: .plain, target: nil, action: nil)
+                }
                 
                 self.collectionView.reloadData()
                 
@@ -129,7 +156,7 @@ class ViewController: UIViewController {
     }
 }
 
-// MARK: - UISearchResultsUpdating
+// MARK: - 검색 결과 업데이트
 
 extension ViewController: UISearchResultsUpdating {
     
@@ -150,7 +177,7 @@ extension ViewController: UISearchResultsUpdating {
     }
 }
 
-// MARK: - UISearchBarDelegate
+// MARK: - 검색바 델리게이트
 
 extension ViewController: UISearchBarDelegate {
     
@@ -163,7 +190,7 @@ extension ViewController: UISearchBarDelegate {
     }
 }
 
-// MARK: - UICollectionViewDataSource
+// MARK: - 컬렉션뷰 데이터소스
 
 extension ViewController: UICollectionViewDataSource {
     
@@ -184,7 +211,7 @@ extension ViewController: UICollectionViewDataSource {
     }
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout
+// MARK: - 컬렉션뷰 레이아웃
 
 extension ViewController: UICollectionViewDelegateFlowLayout {
     
@@ -192,12 +219,12 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
                        layout collectionViewLayout: UICollectionViewLayout,
                        sizeForItemAt indexPath: IndexPath) -> CGSize {
         let padding: CGFloat = 20
-        let spacing: CGFloat = 10
+        let spacing: CGFloat = 16
         let totalHorizontalSpacing = (padding * 2) + spacing
         
         // 한 줄에 2개씩 배치
         let itemWidth = (collectionView.bounds.width - totalHorizontalSpacing) / 2
-        let itemHeight = itemWidth * 1.5 + 50  // 포스터 비율 + 텍스트 영역
+        let itemHeight = itemWidth * 1.5 + 60  // 포스터 비율 + 텍스트 영역
         
         return CGSize(width: itemWidth, height: itemHeight)
     }
@@ -205,11 +232,11 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                        layout collectionViewLayout: UICollectionViewLayout,
                        insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
+        return UIEdgeInsets(top: 16, left: 20, bottom: 16, right: 20)
     }
 }
 
-// MARK: - UICollectionViewDelegate
+// MARK: - 컬렉션뷰 델리게이트
 
 extension ViewController: UICollectionViewDelegate {
     

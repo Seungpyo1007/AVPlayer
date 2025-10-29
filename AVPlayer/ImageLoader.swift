@@ -3,11 +3,11 @@ import UIKit
 /// 이미지 다운로드 및 캐싱을 담당하는 싱글톤 클래스
 class ImageLoader {
     
-    // MARK: - Singleton
+    // MARK: - 싱글톤
     
     static let shared = ImageLoader()
     
-    // MARK: - Properties
+    // MARK: - 프로퍼티
     
     /// 다운로드한 이미지를 메모리에 캐싱
     private let imageCache = NSCache<NSString, UIImage>()
@@ -15,11 +15,11 @@ class ImageLoader {
     /// 진행 중인 다운로드 작업 추적 (중복 요청 방지)
     private var runningRequests: [String: URLSessionDataTask] = [:]
     
-    // MARK: - Initialization
+    // MARK: - 초기화
     
     private init() {}
     
-    // MARK: - Public Methods
+    // MARK: - 공개 메서드
     
     /// URL에서 이미지를 로드 (캐시 우선, 없으면 다운로드)
     /// - Parameters:
@@ -62,7 +62,7 @@ class ImageLoader {
         }
     }
     
-    // MARK: - Private Methods
+    // MARK: - 비공개 메서드
     
     /// 이미지 다운로드 작업 생성
     private func createDownloadTask(for url: URL,

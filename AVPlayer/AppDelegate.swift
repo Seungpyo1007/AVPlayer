@@ -10,7 +10,7 @@ import UIKit
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    // MARK: - Application Lifecycle
+    // MARK: - 앱 생명주기
     
     /// 앱이 시작될 때 호출 - 초기 설정
     func application(_ application: UIApplication,
@@ -19,7 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
-    // MARK: - UISceneSession Lifecycle
+    // MARK: - Scene 세션 생명주기
     
     /// 새로운 Scene 세션이 생성될 때 호출
     func application(_ application: UIApplication,
@@ -31,9 +31,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     /// Scene 세션이 삭제될 때 호출
-//    func application(_ application: UIApplication,
-//                    didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
-//        // 삭제된 Scene에 관련된 리소스 정리
-//        // 앱이 실행 중이지 않을 때 삭제된 세션도 여기서 처리됨
-//    }
+    func application(_ application: UIApplication,
+                    didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
+        // 삭제된 Scene에 관련된 리소스 정리
+        // 앱이 실행 중이지 않을 때 삭제된 세션도 여기서 처리됨
+    }
 }

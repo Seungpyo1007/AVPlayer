@@ -1,24 +1,33 @@
 import UIKit
 import AVKit
-import SafariServices // 유튜브 URL 재생을 위해 SafariServices 임포트
+import SafariServices
 
+/// 영화 상세 정보를 표시하는 화면
 class MovieDetailViewController: UIViewController {
 
-    // MARK: - Constants & Properties
-    private let collapsedOverviewLines: Int = 4
-    private let imageRatio: CGFloat = 1.5
+    // MARK: - 상수
+    
+    private enum Layout {
+        static let collapsedOverviewLines = 4
+        static let posterRatio: CGFloat = 1.5
+        static let margin: CGFloat = 20
+        static let posterWidthRatio: CGFloat = 0.4
+        static let overviewMinLength = 150
+    }
+    
+    // MARK: - 프로퍼티
+    
+    private let movie: Movie
+    private var isOverviewExpanded = false
     private var currentImageTask: URLSessionDataTask?
-
-    let movie: Movie
-    var isOverviewExpanded: Bool = false
-    private let networkManager = NetworkManager() // NetworkManager 인스턴스
-
-    // MARK: - Components
+    private let networkManager = NetworkManager()
+    
+    // MARK: - UI 컴포넌트
     
     private let scrollView: UIScrollView = {
-        let sv = UIScrollView()
-        sv.translatesAutoresizingMaskIntoConstraints = false
-        return sv
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        return scrollView
     }()
     
     private let contentView: UIView = {
@@ -27,20 +36,21 @@ class MovieDetailViewController: UIViewController {
         return view
     }()
     
-    private lazy var posterImageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.clipsToBounds = true
-        iv.backgroundColor = .systemGray4
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
+    private let posterImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        imageView.backgroundColor = .systemGray5
+        imageView.layer.cornerRadius = 12
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
     }()
     
     private lazy var ratingLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 18, weight: .semibold)
         label.textColor = .systemOrange
-        label.text = "⭐️ \(String(format: "%.1f", movie.voteAverage)) / 10"
+        label.text = "⭐️ \(String(format: "%.1f", self.movie.voteAverage)) / 10"
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -48,8 +58,9 @@ class MovieDetailViewController: UIViewController {
     private lazy var overviewLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 15, weight: .regular)
-        label.numberOfLines = collapsedOverviewLines
-        label.text = movie.overview
+        label.textColor = .label
+        label.numberOfLines = Layout.collapsedOverviewLines
+        label.text = self.movie.overview
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -60,13 +71,13 @@ class MovieDetailViewController: UIViewController {
         button.titleLabel?.font = .systemFont(ofSize: 15, weight: .bold)
         button.addTarget(self, action: #selector(toggleOverview), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.isHidden = movie.overview.count < 150
+        button.isHidden = self.movie.overview.count < Layout.overviewMinLength
         return button
     }()
 
     private lazy var trailerButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("▶️ 예고편 재생", for: .normal)
+        button.setTitle("예고편 재생", for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
         button.backgroundColor = .systemRed.withAlphaComponent(0.8)
         button.setTitleColor(.white, for: .normal)
@@ -76,7 +87,7 @@ class MovieDetailViewController: UIViewController {
         return button
     }()
 
-    // MARK: - Initialization & Lifecycle
+    // MARK: - 초기화
     
     init(movie: Movie) {
         self.movie = movie
@@ -87,121 +98,176 @@ class MovieDetailViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - 생명주기
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
-        title = movie.title
-        setupLayout()
+        setupUI()
         loadPosterImage()
+        
+        // Large Title 비활성화 (부드러운 전환 애니메이션)
+        navigationItem.largeTitleDisplayMode = .never
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        if let url = movie.fullPosterURL {
-            ImageLoader.shared.cancelLoading(for: url)
-        }
+        cancelImageLoading()
     }
     
-    // MARK: - Setup UI & Layout (생략... 이전 코드와 동일)
+    // MARK: - UI 설정
     
-    private func setupLayout() {
+    private func setupUI() {
+        view.backgroundColor = .systemBackground
+        title = movie.title
+        
+        setupViewHierarchy()
+        setupConstraints()
+    }
+    
+    private func setupViewHierarchy() {
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
-        [posterImageView, ratingLabel, overviewLabel, toggleOverviewButton, trailerButton].forEach { contentView.addSubview($0) }
-        
+        contentView.addSubview(posterImageView)
+        contentView.addSubview(ratingLabel)
+        contentView.addSubview(overviewLabel)
+        contentView.addSubview(toggleOverviewButton)
+        contentView.addSubview(trailerButton)
+    }
+    
+    private func setupConstraints() {
+        setupScrollViewConstraints()
+        setupContentConstraints()
+    }
+    
+    private func setupScrollViewConstraints() {
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: view.widthAnchor)
         ])
-        
-        let margin: CGFloat = 20
-        let imageWidth = view.bounds.width * 0.4
+    }
+    
+    private func setupContentConstraints() {
+        let posterWidth = view.bounds.width * Layout.posterWidthRatio
         
         NSLayoutConstraint.activate([
-            posterImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: margin),
-            posterImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: margin),
-            posterImageView.widthAnchor.constraint(equalToConstant: imageWidth),
-            posterImageView.heightAnchor.constraint(equalTo: posterImageView.widthAnchor, multiplier: imageRatio),
+            // 포스터 이미지 (좌측 상단)
+            posterImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: Layout.margin),
+            posterImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.margin),
+            posterImageView.widthAnchor.constraint(equalToConstant: posterWidth),
+            posterImageView.heightAnchor.constraint(equalTo: posterImageView.widthAnchor, multiplier: Layout.posterRatio),
+            
+            // 평점 레이블 (포스터 우측 상단)
             ratingLabel.topAnchor.constraint(equalTo: posterImageView.topAnchor, constant: 10),
             ratingLabel.leadingAnchor.constraint(equalTo: posterImageView.trailingAnchor, constant: 15),
-            ratingLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -margin),
-            trailerButton.leadingAnchor.constraint(equalTo: ratingLabel.leadingAnchor),
+            ratingLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.margin),
+            
+            // 예고편 버튼 (평점 아래)
             trailerButton.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 20),
-            trailerButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -margin),
+            trailerButton.leadingAnchor.constraint(equalTo: ratingLabel.leadingAnchor),
+            trailerButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.margin),
             trailerButton.heightAnchor.constraint(equalToConstant: 44),
-            overviewLabel.topAnchor.constraint(equalTo: posterImageView.bottomAnchor, constant: margin),
-            overviewLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: margin),
-            overviewLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -margin),
+            
+            // 줄거리 레이블 (포스터 하단)
+            overviewLabel.topAnchor.constraint(equalTo: posterImageView.bottomAnchor, constant: Layout.margin),
+            overviewLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: Layout.margin),
+            overviewLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -Layout.margin),
+            
+            // 더보기 버튼 (줄거리 하단)
             toggleOverviewButton.topAnchor.constraint(equalTo: overviewLabel.bottomAnchor, constant: 8),
             toggleOverviewButton.leadingAnchor.constraint(equalTo: overviewLabel.leadingAnchor),
-            toggleOverviewButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -margin * 2)
+            toggleOverviewButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -Layout.margin * 2)
         ])
     }
     
-    // MARK: - Data & Actions
+    // MARK: - 이미지 로딩
     
+    /// 포스터 이미지 로드
     private func loadPosterImage() {
         guard let url = movie.fullPosterURL else { return }
         
         currentImageTask = ImageLoader.shared.loadImage(from: url) { [weak self] result in
             DispatchQueue.main.async {
-                if case .success(let image) = result {
-                    self?.posterImageView.image = image
-                }
+                self?.handleImageLoadResult(result)
             }
         }
     }
     
+    /// 이미지 로드 결과 처리
+    private func handleImageLoadResult(_ result: Result<UIImage, Error>) {
+        if case .success(let image) = result {
+            posterImageView.image = image
+        }
+    }
+    
+    /// 이미지 로딩 취소
+    private func cancelImageLoading() {
+        if let url = movie.fullPosterURL {
+            ImageLoader.shared.cancelLoading(for: url)
+        }
+    }
+    
+    // MARK: - 액션
+    
+    /// 줄거리 펼치기/접기
     @objc private func toggleOverview() {
         isOverviewExpanded.toggle()
-        overviewLabel.numberOfLines = isOverviewExpanded ? 0 : collapsedOverviewLines
-        let buttonTitle = isOverviewExpanded ? "접기" : "더 보기"
-        toggleOverviewButton.setTitle(buttonTitle, for: .normal)
+        
+        overviewLabel.numberOfLines = isOverviewExpanded ? 0 : Layout.collapsedOverviewLines
+        toggleOverviewButton.setTitle(isOverviewExpanded ? "접기" : "더 보기", for: .normal)
+        
         UIView.animate(withDuration: 0.3) {
             self.view.layoutIfNeeded()
         }
     }
     
+    /// 예고편 재생
     @objc private func playTrailer() {
-        
-        // 예고편 정보 로딩 시작
-        trailerButton.isEnabled = false // 중복 클릭 방지
+        trailerButton.isEnabled = false
         
         networkManager.fetchMovieTrailer(movieID: movie.id) { [weak self] result in
-            guard let self = self else { return }
-            
             DispatchQueue.main.async {
-                self.trailerButton.isEnabled = true
-                
-                switch result {
-                case .success(let trailer):
-                    // 예고편 URL이 유효한지 확인
-                    guard let url = trailer.youtubeURL else {
-                        self.showAlert(message: "유효한 YouTube 예고편 URL을 찾을 수 없습니다.")
-                        return
-                    }
-                    
-                    // AVPlayer 대신 SFSafariViewController를 사용하여 YouTube 웹에서 재생
-                    // AVPlayer는 특정 YouTube URL 포맷을 직접 지원하지 않기 때문에 Safari를 사용합니다.
-                    let safariVC = SFSafariViewController(url: url)
-                    self.present(safariVC, animated: true)
-
-                case .failure(let error):
-                    let errorMessage = error.localizedDescription
-                    self.showAlert(message: "예고편 로드 실패: \(errorMessage)")
-                }
+                self?.handleTrailerFetchResult(result)
             }
         }
     }
     
+    // MARK: - 예고편 처리
+    
+    /// 예고편 가져오기 결과 처리
+    private func handleTrailerFetchResult(_ result: Result<Trailer, NetworkManager.NetworkError>) {
+        trailerButton.isEnabled = true
+        
+        switch result {
+        case .success(let trailer):
+            openTrailer(trailer)
+            
+        case .failure(let error):
+            showAlert(message: "예고편 로드 실패: \(error.localizedDescription)")
+        }
+    }
+    
+    /// 예고편 열기
+    private func openTrailer(_ trailer: Trailer) {
+        guard let url = trailer.youtubeURL else {
+            showAlert(message: "유효한 YouTube 예고편을 찾을 수 없습니다.")
+            return
+        }
+        
+        // Safari로 YouTube 재생 (AVPlayer는 YouTube URL 직접 지원 안 함)
+        let safariVC = SFSafariViewController(url: url)
+        present(safariVC, animated: true)
+    }
+    
+    /// 알림 표시
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "알림", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "확인", style: .default))

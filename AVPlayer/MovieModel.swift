@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - Movie Response
+// MARK: - 영화 응답
 
 /// TMDB API 영화 목록 응답 구조 (페이징 정보 포함)
 struct MovieResponse: Codable {
@@ -14,7 +14,7 @@ struct MovieResponse: Codable {
     }
 }
 
-// MARK: - Movie
+// MARK: - 영화
 
 /// 개별 영화 정보
 struct Movie: Codable {
@@ -38,7 +38,7 @@ struct Movie: Codable {
     }
 }
 
-// MARK: - Trailer Response
+// MARK: - 예고편 응답
 
 /// TMDB API 예고편 목록 응답 구조
 struct TrailerResponse: Codable {
@@ -46,7 +46,7 @@ struct TrailerResponse: Codable {
     let results: [Trailer]
 }
 
-// MARK: - Trailer
+// MARK: - 예고편
 
 /// 영화 예고편 정보
 struct Trailer: Codable {
