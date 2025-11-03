@@ -52,16 +52,16 @@ class ViewController: UIViewController {
         setupSearchBar()
     }
     
-    // 다크모드 대응 네비게이션 바 설정
     private func setupNavigationBar() {
-        navigationController?.navigationBar.prefersLargeTitles = true
+        // 다크모드 대응 네비게이션 바 설정
+        // Large Title False
+        navigationController?.navigationBar.prefersLargeTitles = false
         
         if #available(iOS 13.0, *) {
             let appearance = UINavigationBarAppearance()
             appearance.configureWithOpaqueBackground()
             appearance.backgroundColor = .systemBackground
             appearance.titleTextAttributes = [.foregroundColor: UIColor.label]
-            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
             
             navigationController?.navigationBar.standardAppearance = appearance
             navigationController?.navigationBar.scrollEdgeAppearance = appearance
@@ -88,6 +88,9 @@ class ViewController: UIViewController {
         navigationItem.searchController = searchController
         navigationItem.hidesSearchBarWhenScrolling = false
         definesPresentationContext = true
+        
+        // 검색 취소 시 부드러운 애니메이션 ??
+        searchController.hidesNavigationBarDuringPresentation = false
     }
     
     // MARK: - 데이터 로딩
@@ -133,14 +136,17 @@ class ViewController: UIViewController {
                 
                 // 화면 제목 업데이트
                 if query == nil {
-                    self.title = "인기 영화 랭킹"
+                    self.title = "인기 영화"
                     self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "인기 영화", style: .plain, target: nil, action: nil)
                 } else {
                     self.title = "검색 결과"
                     self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "검색 결과", style: .plain, target: nil, action: nil)
                 }
                 
-                self.collectionView.reloadData()
+                // 애니메이션 없이 부드럽게 업데이트
+                UIView.performWithoutAnimation {
+                    self.collectionView.reloadData()
+                }
                 
             case .failure(let error):
                 print("영화 로드 실패: \(error.localizedDescription)")
@@ -161,7 +167,10 @@ class ViewController: UIViewController {
 extension ViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
-        guard let searchText = searchController.searchBar.text, !searchText.isEmpty else { return }
+        guard let searchText = searchController.searchBar.text, !searchText.isEmpty else {
+            // 검색어가 비어있으면 검색 요청 취소
+            return
+        }
         
         // 0.5초 디바운싱 (타이핑 중 과도한 API 호출 방지)
         NSObject.cancelPreviousPerformRequests(
@@ -182,11 +191,15 @@ extension ViewController: UISearchResultsUpdating {
 extension ViewController: UISearchBarDelegate {
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        // 검색 중이던 요청 취소
+        NSObject.cancelPreviousPerformRequests(withTarget: self)
+        
+        // 검색 상태가 아니면 아무것도 하지 않음 (깜박임 방지)
+        guard currentSearchQuery != nil else { return }
+        
         // 검색 취소 시 인기 영화로 복귀
         currentSearchQuery = nil
-        movies = []
-        collectionView.reloadData()
-        loadPopularMovies()
+        fetchMovies(query: nil, page: 1)
     }
 }
 
