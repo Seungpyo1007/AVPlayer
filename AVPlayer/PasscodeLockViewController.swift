@@ -12,13 +12,14 @@ struct PasscodeLockView: View {
     @State private var hasAttemptedAutoBiometrics = false
     @State private var canUseBiometrics: Bool = false
     @State private var useFaceIDByDefault: Bool = UserDefaults.standard.bool(forKey: "app.useFaceIDByDefault")
-    private let passcodeLength = 4
+    @State private var randomizedKeypadRows: [[String]] = []
+    private let passcodeLength = 6
     private let defaultsKey = "app.passcode"
     private let useFaceIDDefaultsKey = "app.useFaceIDByDefault"
 
     private var currentPasscode: String {
         let stored = UserDefaults.standard.string(forKey: defaultsKey)
-        return (stored?.isEmpty == false) ? stored! : "1007"
+        return (stored?.isEmpty == false) ? stored! : "100712"
     }
 
     private var dotFillColor: Color { .primary }
@@ -65,10 +66,8 @@ struct PasscodeLockView: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Center the indicators between header and keypad using symmetric spacers
             Spacer(minLength: 0)
 
-            // Indicators
             HStack(spacing: 16) {
                 ForEach(0..<passcodeLength, id: \.self) { idx in
                     Circle()
@@ -92,6 +91,9 @@ struct PasscodeLockView: View {
         .onAppear {
             updateBiometricAvailability()
             useFaceIDByDefault = UserDefaults.standard.bool(forKey: useFaceIDDefaultsKey)
+            if randomizedKeypadRows.isEmpty {
+                randomizedKeypadRows = buildRandomizedKeypadRows()
+            }
         }
         .animation(.easeInOut(duration: 0.15), value: input)
         .task {
@@ -102,7 +104,7 @@ struct PasscodeLockView: View {
     // MARK: - Keypad
     private var keypad: some View {
         VStack(spacing: 12) {
-            ForEach(Array(keypadRows.enumerated()), id: \.offset) { rowIndex, row in
+            ForEach(Array(randomizedKeypadRows.enumerated()), id: \.offset) { rowIndex, row in
                 HStack(spacing: 12) {
                     ForEach(Array(row.enumerated()), id: \.offset) { colIndex, symbol in
                         if symbol.isEmpty {
@@ -164,8 +166,57 @@ struct PasscodeLockView: View {
         }
     }
 
-    private var keypadRows: [[String]] {
-        [["1","2","3"],["4","5","6"],["7","8","9"],["faceid","0","←"]]
+    private func buildRandomizedKeypadRows() -> [[String]] {
+        
+        // 숫자 0-9 + faceid 총 11가지만 전부 무작위로 섞어서 4x3 그리드로 배치
+        var mix: [String] = Array(0...9).map { String($0) }
+        mix.append("faceid")
+        mix.shuffle()
+        
+        if mix.count > 11 { mix = Array(mix.prefix(11)) }
+        var keeps = mix
+        keeps.append("←")
+
+        var rows: [[String]] = []
+        for i in 0..<4 {
+            let start = i * 3
+            let end = start + 3
+            let row = Array(keeps[start..<end])
+            rows.append(row)
+        }
+        return rows
+        
+        // 숫자 0-9 + faceid + 삭제(←) 총 12개를 전부 무작위로 섞어서 4x3 그리드로 배치
+//        var mix: [String] = Array(0...9).map { String($0) }
+//        mix.append("faceid")
+//        mix.append("←")
+//        mix.shuffle()
+//
+//        var rows: [[String]] = []
+//        for i in 0..<4 {
+//            let start = i * 3
+//            let end = start + 3
+//            let row = Array(mix[start..<end])
+//            rows.append(row)
+//        }
+//        return rows
+
+        // 숫자 0-9 총 10개만 전부 무작위로 섞어서 4x3 그리드로 배치 (faceid/삭제 제외)
+//        var mix: [String] = Array(0...9).map { String($0) }
+//        mix.shuffle()
+//
+//        // mix에 바로 빈칸 2개 추가해서 12칸 맞추기
+//        mix.append("")
+//        mix.append("")
+//
+//        var rows: [[String]] = []
+//        for i in 0..<4 {
+//            let start = i * 3
+//            let end = start + 3
+//            let row = Array(mix[start..<end])
+//            rows.append(row)
+//        }
+//        return rows
     }
 
     // MARK: - Actions
@@ -264,3 +315,4 @@ struct PressScaleStyle: ButtonStyle {
 //    })
 //    .preferredColorScheme(.light)
 //}
+
