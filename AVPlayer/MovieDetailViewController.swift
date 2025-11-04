@@ -1,6 +1,6 @@
 import UIKit
 import AVKit
-import WebKit // YouTube를 앱 내에서 재생하기 위해 WKWebView 사용
+import YouTubeKit
 
 /// 영화 상세 정보를 표시하는 화면
 class MovieDetailViewController: UIViewController {
@@ -193,18 +193,20 @@ class MovieDetailViewController: UIViewController {
     /// 포스터 이미지 로드
     private func loadPosterImage() {
         guard let url = movie.fullPosterURL else { return }
-        
         currentImageTask = ImageLoader.shared.loadImage(from: url) { [weak self] result in
-            DispatchQueue.main.async {
-                self?.handleImageLoadResult(result)
-            }
+            self?.handleImageLoadResult(result)
         }
     }
     
     /// 이미지 로드 결과 처리
     private func handleImageLoadResult(_ result: Result<UIImage, Error>) {
-        if case .success(let image) = result {
-            posterImageView.image = image
+        DispatchQueue.main.async { [weak self] in
+            switch result {
+            case .success(let image):
+                self?.posterImageView.image = image
+            case .failure:
+                break
+            }
         }
     }
     
@@ -216,154 +218,106 @@ class MovieDetailViewController: UIViewController {
     }
     
     // MARK: - 액션
-    
+
     /// 줄거리 펼치기/접기
     @objc private func toggleOverview() {
         isOverviewExpanded.toggle()
-        
         overviewLabel.numberOfLines = isOverviewExpanded ? 0 : Layout.collapsedOverviewLines
         toggleOverviewButton.setTitle(isOverviewExpanded ? "접기" : "더 보기", for: .normal)
-        
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
-        }
+        UIView.animate(withDuration: 0.25, delay: 0, options: [.curveEaseInOut], animations: { [weak self] in
+            self?.view.layoutIfNeeded()
+        }, completion: nil)
     }
-    
+
     /// 예고편 재생
     @objc private func playTrailer() {
         trailerButton.isEnabled = false
-        
         networkManager.fetchMovieTrailer(movieID: movie.id) { [weak self] result in
-            DispatchQueue.main.async {
-                self?.handleTrailerFetchResult(result)
+            self?.handleTrailerFetchResult(result)
+        }
+    }
+
+    // MARK: - 예고편 처리
+
+    /// 예고편 가져오기 결과 처리
+    private func handleTrailerFetchResult(_ result: Result<Trailer, NetworkManager.NetworkError>) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.trailerButton.isEnabled = true
+            switch result {
+            case .success(let trailer):
+                self.openTrailer(trailer)
+            case .failure(let error):
+                self.showAlert(message: "예고편 로드 실패: \(error.localizedDescription)")
             }
         }
     }
-    
-    // MARK: - 예고편 처리
-    
-    /// 예고편 가져오기 결과 처리
-    private func handleTrailerFetchResult(_ result: Result<Trailer, NetworkManager.NetworkError>) {
-        trailerButton.isEnabled = true
-        
-        switch result {
-        case .success(let trailer):
-            openTrailer(trailer)
-            
-        case .failure(let error):
-            showAlert(message: "예고편 로드 실패: \(error.localizedDescription)")
-        }
-    }
-    
-    /// 예고편 열기
+
+    /// 예고편 열기 (AVPlayer 사용)
     private func openTrailer(_ trailer: Trailer) {
-        guard let url = trailer.youtubeURL else {
+        guard let youtubeURL = trailer.youtubeURL else {
             showAlert(message: "유효한 YouTube 예고편을 찾을 수 없습니다.")
             return
         }
-        
-        // WKWebView를 포함한 전용 화면을 생성하여 앱 내에서 재생
-        let webVC = WebViewController(url: url)
-        // 닫기 버튼 등 내비게이션 바 사용을 위해 내비게이션 컨트롤러로 래핑
-        let nav = UINavigationController(rootViewController: webVC)
-        // 전체 화면으로 표시 (가로 모드 전환 시에도 자연스러움)
-        nav.modalPresentationStyle = .fullScreen
-        present(nav, animated: true)
+        resolveYouTubeStreamURL(from: youtubeURL) { [weak self] result in
+            switch result {
+            case .success(let streamURL):
+                self?.presentPlayer(with: streamURL)
+            case .failure(let error):
+                DispatchQueue.main.async { [weak self] in
+                    self?.showAlert(message: "예고편 재생 실패: \(error.localizedDescription)")
+                }
+            }
+        }
     }
-    
+
+    private func presentPlayer(with url: URL) {
+        DispatchQueue.main.async { [weak self] in
+            let player = AVPlayer(url: url)
+            let playerVC = AVPlayerViewController()
+            playerVC.player = player
+            playerVC.modalPresentationStyle = .fullScreen
+            self?.present(playerVC, animated: true) {
+                player.play()
+            }
+        }
+    }
+
+    private struct NoPlayableStreamError: LocalizedError {
+        var errorDescription: String? { "재생 가능한 스트림을 찾을 수 없습니다." }
+    }
+
+    /// YouTube 페이지 URL에서 실제 미디어 스트림 URL을 YouTubeKit으로 해석합니다.
+    /// - Note: YouTubeKit은 Swift Concurrency(Async/Await)를 사용합니다. 내부에서 Task로 래핑하여 콜백으로 전달합니다.
+    private func resolveYouTubeStreamURL(from youtubeURL: URL, completion: @escaping (Result<URL, Error>) -> Void) {
+        Task {
+            do {
+                let video = YouTube(url: youtubeURL)
+                let streams = try await video.streams
+                if let best = streams.filterVideoAndAudio().filter({ $0.isNativelyPlayable }).highestResolutionStream() {
+                    completion(.success(best.url))
+                    return
+                }
+                if let fallback = streams.filterVideoAndAudio().highestResolutionStream() {
+                    completion(.success(fallback.url))
+                    return
+                }
+                if let audioOnly = streams.filterAudioOnly().highestAudioBitrateStream() {
+                    completion(.success(audioOnly.url))
+                    return
+                }
+                completion(.failure(NoPlayableStreamError()))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
     /// 알림 표시
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "알림", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
-    }
-    
-    // MARK: - WKWebView 컨트롤러
-    
-    // YouTube URL을 로드하는 간단한 WKWebView 컨트롤러
-    private final class WebViewController: UIViewController, WKNavigationDelegate {
-        private let url: URL
-        private var webView: WKWebView!
-        private var progressView: UIProgressView!
-
-        init(url: URL) {
-            self.url = url
-            super.init(nibName: nil, bundle: nil)
-        }
-
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
-
-        override func viewDidLoad() {
-            super.viewDidLoad()
-            view.backgroundColor = .systemBackground
-            title = "예고편"
-
-            setupWebView()
-            setupToolbar()
-            load()
-        }
-
-        private func setupWebView() {
-            // 인라인 재생 등 웹뷰 구성 설정
-            let config = WKWebViewConfiguration()
-            config.allowsInlineMediaPlayback = true  // 전체 화면 전환 없이 인라인 동영상 재생 허용
-            webView = WKWebView(frame: .zero, configuration: config)
-            webView.navigationDelegate = self
-            webView.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(webView)
-
-            NSLayoutConstraint.activate([
-                webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-                webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-            ])
-
-            progressView = UIProgressView(progressViewStyle: .bar)
-            progressView.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(progressView)
-
-            NSLayoutConstraint.activate([
-                progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-            ])
-
-            // 로딩 진행률 표시를 위해 KVO로 진행률 관찰
-            webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
-        }
-
-        private func setupToolbar() {
-            // 닫기 버튼 및 Safari 열기 버튼 제공
-            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Safari에서 열기", style: .plain, target: self, action: #selector(openInSafari))
-        }
-
-        private func load() {
-            webView.load(URLRequest(url: url)) // 지정된 YouTube URL 로드 시작
-        }
-
-        @objc private func close() {
-            dismiss(animated: true)
-        }
-
-        @objc private func openInSafari() {
-            UIApplication.shared.open(url)
-        }
-
-        override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-            // 진행률이 100%가 되면 프로그레스 바를 숨김
-            if keyPath == #keyPath(WKWebView.estimatedProgress) {
-                progressView.isHidden = webView.estimatedProgress >= 1.0
-                progressView.setProgress(Float(webView.estimatedProgress), animated: true)
-            }
-        }
-
-        deinit {
-            webView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress)) // KVO 정리 (메모리 누수 방지)
-        }
     }
 }
 

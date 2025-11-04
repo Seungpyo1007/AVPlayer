@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		351EECC52EB9D2D700AD731F /* YouTubeKit in Frameworks */ = {isa = PBXBuildFile; productRef = 351EECC42EB9D2D700AD731F /* YouTubeKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		359DB5642EB8739C003EE152 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -50,6 +54,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				351EECC52EB9D2D700AD731F /* YouTubeKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +107,7 @@
 			);
 			name = AVPlayer;
 			packageProductDependencies = (
+				351EECC42EB9D2D700AD731F /* YouTubeKit */,
 			);
 			productName = AVPlayer;
 			productReference = 35A86C7E2EB0846C00B43EFA /* AVPlayer.app */;
@@ -131,6 +137,9 @@
 			);
 			mainGroup = 35A86C752EB0846C00B43EFA;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				351EECC32EB9D2D700AD731F /* XCRemoteSwiftPackageReference "YouTubeKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 35A86C7F2EB0846C00B43EFA /* Products */;
 			projectDirPath = "";
@@ -363,6 +372,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		351EECC32EB9D2D700AD731F /* XCRemoteSwiftPackageReference "YouTubeKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/alexeichhorn/YouTubeKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		351EECC42EB9D2D700AD731F /* YouTubeKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 351EECC32EB9D2D700AD731F /* XCRemoteSwiftPackageReference "YouTubeKit" */;
+			productName = YouTubeKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 35A86C762EB0846C00B43EFA /* Project object */;
 }
