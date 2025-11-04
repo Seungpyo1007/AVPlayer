@@ -1,6 +1,6 @@
 import UIKit
 import AVKit
-import SafariServices
+import WebKit // YouTube를 앱 내에서 재생하기 위해 WKWebView 사용
 
 /// 영화 상세 정보를 표시하는 화면
 class MovieDetailViewController: UIViewController {
@@ -262,9 +262,13 @@ class MovieDetailViewController: UIViewController {
             return
         }
         
-        // Safari로 YouTube 재생 (AVPlayer는 YouTube URL 직접 지원 안 함)
-        let safariVC = SFSafariViewController(url: url)
-        present(safariVC, animated: true)
+        // WKWebView를 포함한 전용 화면을 생성하여 앱 내에서 재생
+        let webVC = WebViewController(url: url)
+        // 닫기 버튼 등 내비게이션 바 사용을 위해 내비게이션 컨트롤러로 래핑
+        let nav = UINavigationController(rootViewController: webVC)
+        // 전체 화면으로 표시 (가로 모드 전환 시에도 자연스러움)
+        nav.modalPresentationStyle = .fullScreen
+        present(nav, animated: true)
     }
     
     /// 알림 표시
@@ -273,4 +277,93 @@ class MovieDetailViewController: UIViewController {
         alert.addAction(UIAlertAction(title: "확인", style: .default))
         present(alert, animated: true)
     }
+    
+    // MARK: - WKWebView 컨트롤러
+    
+    // YouTube URL을 로드하는 간단한 WKWebView 컨트롤러
+    private final class WebViewController: UIViewController, WKNavigationDelegate {
+        private let url: URL
+        private var webView: WKWebView!
+        private var progressView: UIProgressView!
+
+        init(url: URL) {
+            self.url = url
+            super.init(nibName: nil, bundle: nil)
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            view.backgroundColor = .systemBackground
+            title = "예고편"
+
+            setupWebView()
+            setupToolbar()
+            load()
+        }
+
+        private func setupWebView() {
+            // 인라인 재생 등 웹뷰 구성 설정
+            let config = WKWebViewConfiguration()
+            config.allowsInlineMediaPlayback = true  // 전체 화면 전환 없이 인라인 동영상 재생 허용
+            webView = WKWebView(frame: .zero, configuration: config)
+            webView.navigationDelegate = self
+            webView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(webView)
+
+            NSLayoutConstraint.activate([
+                webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            ])
+
+            progressView = UIProgressView(progressViewStyle: .bar)
+            progressView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(progressView)
+
+            NSLayoutConstraint.activate([
+                progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            ])
+
+            // 로딩 진행률 표시를 위해 KVO로 진행률 관찰
+            webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
+        }
+
+        private func setupToolbar() {
+            // 닫기 버튼 및 Safari 열기 버튼 제공
+            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .close, target: self, action: #selector(close))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Safari에서 열기", style: .plain, target: self, action: #selector(openInSafari))
+        }
+
+        private func load() {
+            webView.load(URLRequest(url: url)) // 지정된 YouTube URL 로드 시작
+        }
+
+        @objc private func close() {
+            dismiss(animated: true)
+        }
+
+        @objc private func openInSafari() {
+            UIApplication.shared.open(url)
+        }
+
+        override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+            // 진행률이 100%가 되면 프로그레스 바를 숨김
+            if keyPath == #keyPath(WKWebView.estimatedProgress) {
+                progressView.isHidden = webView.estimatedProgress >= 1.0
+                progressView.setProgress(Float(webView.estimatedProgress), animated: true)
+            }
+        }
+
+        deinit {
+            webView?.removeObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress)) // KVO 정리 (메모리 누수 방지)
+        }
+    }
 }
+

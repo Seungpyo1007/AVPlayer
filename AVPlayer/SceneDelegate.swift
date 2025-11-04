@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -23,12 +24,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // 1. 윈도우 생성
         window = UIWindow(windowScene: windowScene)
         
-        // 2. 초기 화면 설정
-        let mainViewController = ViewController()
-        let navigationController = UINavigationController(rootViewController: mainViewController)
-        
-        // 3. 윈도우에 네비게이션 컨트롤러 설정 및 표시
-        window?.rootViewController = navigationController
+        // 2. 초기 화면 설정 (SwiftUI)
+        let lockView = PasscodeLockView(onUnlock: { [weak window] in
+            let mainVC = ViewController()
+            let nav = UINavigationController(rootViewController: mainVC)
+            if let window = window {
+                UIView.transition(with: window, duration: 0.25, options: .transitionCrossDissolve, animations: {
+                    window.rootViewController = nav
+                })
+            }
+        })
+        let hosting = UIHostingController(rootView: lockView)
+        // 3. 윈도우에 잠금 화면 설정 및 표시
+        window?.rootViewController = hosting
         window?.makeKeyAndVisible()
     }
     
@@ -62,3 +70,4 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Scene 상태 정보 저장
     }
 }
+
