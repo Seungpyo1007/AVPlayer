@@ -1,0 +1,28 @@
+name: ios Run Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test_ios:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Show active Xcode version
+      run: xcodebuild -version
+
+    - name: List Project Structure for Debugging
+      run: ls -R
+      
+    # 4. Run the Clean and Test command
+    - name: Start xcode build and run tests 🛠
+      run: |
+        xcodebuild clean test \
+          -project AVPlayer.xcodeproj \
+          -scheme AVPlayer \
+          -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest'
