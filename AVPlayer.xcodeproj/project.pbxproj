@@ -6,6 +6,16 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		35CED6B12ED6D2B2001F4007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 35A86C762EB0846C00B43EFA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 35A86C7D2EB0846C00B43EFA;
+			remoteInfo = AVPlayer;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		359DB5642EB8739C003EE152 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -22,6 +32,7 @@
 /* Begin PBXFileReference section */
 		359DB55D2EB8731C003EE152 /* LocalAuthentication.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LocalAuthentication.framework; path = System/Library/Frameworks/LocalAuthentication.framework; sourceTree = SDKROOT; };
 		35A86C7E2EB0846C00B43EFA /* AVPlayer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AVPlayer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		35CED6AD2ED6D2B2001F4007 /* AVPlayerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AVPlayerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -43,10 +54,22 @@
 			path = AVPlayer;
 			sourceTree = "<group>";
 		};
+		35CED6AE2ED6D2B2001F4007 /* AVPlayerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AVPlayerTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		35A86C7B2EB0846C00B43EFA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		35CED6AA2ED6D2B2001F4007 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -68,6 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				35A86C802EB0846C00B43EFA /* AVPlayer */,
+				35CED6AE2ED6D2B2001F4007 /* AVPlayerTests */,
 				359DB55C2EB8731C003EE152 /* Frameworks */,
 				35A86C7F2EB0846C00B43EFA /* Products */,
 			);
@@ -77,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				35A86C7E2EB0846C00B43EFA /* AVPlayer.app */,
+				35CED6AD2ED6D2B2001F4007 /* AVPlayerTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -107,6 +132,29 @@
 			productReference = 35A86C7E2EB0846C00B43EFA /* AVPlayer.app */;
 			productType = "com.apple.product-type.application";
 		};
+		35CED6AC2ED6D2B2001F4007 /* AVPlayerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 35CED6B52ED6D2B2001F4007 /* Build configuration list for PBXNativeTarget "AVPlayerTests" */;
+			buildPhases = (
+				35CED6A92ED6D2B2001F4007 /* Sources */,
+				35CED6AA2ED6D2B2001F4007 /* Frameworks */,
+				35CED6AB2ED6D2B2001F4007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				35CED6B22ED6D2B2001F4007 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				35CED6AE2ED6D2B2001F4007 /* AVPlayerTests */,
+			);
+			name = AVPlayerTests;
+			packageProductDependencies = (
+			);
+			productName = AVPlayerTests;
+			productReference = 35CED6AD2ED6D2B2001F4007 /* AVPlayerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -114,11 +162,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
+				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					35A86C7D2EB0846C00B43EFA = {
 						CreatedOnToolsVersion = 16.4;
+					};
+					35CED6AC2ED6D2B2001F4007 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 35A86C7D2EB0846C00B43EFA;
 					};
 				};
 			};
@@ -137,12 +189,20 @@
 			projectRoot = "";
 			targets = (
 				35A86C7D2EB0846C00B43EFA /* AVPlayer */,
+				35CED6AC2ED6D2B2001F4007 /* AVPlayerTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		35A86C7C2EB0846C00B43EFA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		35CED6AB2ED6D2B2001F4007 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -159,7 +219,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		35CED6A92ED6D2B2001F4007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		35CED6B22ED6D2B2001F4007 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 35A86C7D2EB0846C00B43EFA /* AVPlayer */;
+			targetProxy = 35CED6B12ED6D2B2001F4007 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		35A86C922EB0846D00B43EFA /* Debug */ = {
@@ -341,6 +416,48 @@
 			};
 			name = Release;
 		};
+		35CED6B32ED6D2B2001F4007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Seungpyo1007.AVPlayerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AVPlayer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AVPlayer";
+			};
+			name = Debug;
+		};
+		35CED6B42ED6D2B2001F4007 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Seungpyo1007.AVPlayerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AVPlayer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AVPlayer";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -358,6 +475,15 @@
 			buildConfigurations = (
 				35A86C922EB0846D00B43EFA /* Debug */,
 				35A86C932EB0846D00B43EFA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		35CED6B52ED6D2B2001F4007 /* Build configuration list for PBXNativeTarget "AVPlayerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				35CED6B32ED6D2B2001F4007 /* Debug */,
+				35CED6B42ED6D2B2001F4007 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
