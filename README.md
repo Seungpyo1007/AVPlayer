@@ -33,8 +33,6 @@ TMDB(The Movie Database) API를 활용한 iOS 영화 정보 앱입니다. 인기
 - **자동 취소**: 셀 재사용 시 진행 중인 이미지 다운로드 자동 취소
 
 ## 스크린샷
-
-<div align="center">
   
 ### 잠금 화면
 <img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/d44896dc-df46-4641-93b2-b005eb569490" />
@@ -49,13 +47,11 @@ TMDB(The Movie Database) API를 활용한 iOS 영화 정보 앱입니다. 인기
 
 ### 영화 상세 정보
 <img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/88ee5677-e237-4cd2-9533-7316914c51ff" />
-<img width="1320" height="2868" alt="Image" src="https://github.com/user-attachments/assets/085912f8-231f-482c-a3e3-3a8edfb5e9a8" />
+<img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/085912f8-231f-482c-a3e3-3a8edfb5e9a8" />
 
 ### 예고편 재생
 <img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/4ae5579e-9f1b-49b6-96f6-541aa5d273dc" />
 <img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/9c48a2ba-f0ff-44a0-94c2-273e1a5b72c8" />
-
-</div>
 
 ## 기술 스택
 
