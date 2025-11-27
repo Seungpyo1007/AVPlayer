@@ -33,8 +33,6 @@ An iOS movie information app utilizing the TMDB (The Movie Database) API. It pro
 - **Auto Cancellation**: Automatically cancels ongoing image downloads on cell reuse
 
 ## Screenshots
-
-<div align="center">
   
 ### Lock Screen
 <img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/d44896dc-df46-4641-93b2-b005eb569490" />
@@ -49,13 +47,11 @@ An iOS movie information app utilizing the TMDB (The Movie Database) API. It pro
 
 ### Movie Details
 <img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/88ee5677-e237-4cd2-9533-7316914c51ff" />
-<img width="1320" height="2868" alt="Image" src="https://github.com/user-attachments/assets/085912f8-231f-482c-a3e3-3a8edfb5e9a8" />
+<img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/085912f8-231f-482c-a3e3-3a8edfb5e9a8" />
 
 ### Trailer Playback
 <img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/4ae5579e-9f1b-49b6-96f6-541aa5d273dc" />
 <img width="296" height="640" alt="Image" src="https://github.com/user-attachments/assets/9c48a2ba-f0ff-44a0-94c2-273e1a5b72c8" />
-
-</div>
 
 ## Tech Stack
 
