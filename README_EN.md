@@ -159,7 +159,7 @@ A passcode lock screen implemented with SwiftUI.
 
 ## License
 
-This project was created for personal learning and portfolio purposes.
+This project is licensed under the [MIT License](LICENSE).
 
 ## References
 
